@@ -45,7 +45,8 @@ def get_first_layer(size, index_u = -1, index_v = -1):
     index_u = index_u % size
         
     # replace character
-    layer = layer[:index] + '1' + layer[(index + 1):]
+
+    layer[index_v][:index_u] + '1' + layer[index_v][(index_u + 1):]
     return layer
 
 def get_first_line_random(size):
@@ -95,13 +96,14 @@ def cellular_automata_3D(rule_dict, first_layer, layer_count = 100, print_in_ter
     # create image_3D
     image_3D = [first_layer]
     new_layer = first_layer
+    rows = len(first_layer)
     # create layers
     points = []
     for z in range(layer_count):
         old_layer = new_layer
         new_layer = []
         # make rows
-        for u in range(len(old_layer)):
+        for u in range(rows):
             # guideline = old_layer[u]
             # make new line
             # iterate on guideline > outputs new character by the rule
@@ -110,11 +112,11 @@ def cellular_automata_3D(rule_dict, first_layer, layer_count = 100, print_in_ter
             for i in range(L):
                 case1 = old_layer[u-1][i - 1] + old_layer[u-1][i] + old_layer[u-1][(i + 1) % L]
                 case2 = old_layer[u][i - 1] + old_layer[u][i] + old_layer[u][(i + 1) % L]
-                case3 = old_layer[u+1][i - 1] + old_layer[u+1][i] + old_layer[u+1][(i + 1) % L]
+                case3 = old_layer[(u+1)%rows][i - 1] + old_layer[(u+1)%rows][i] + old_layer[(u+1)%rows][(i + 1) % L]
                 digit = rule_dict[case1 + case2 + case3]
-                if digit == 1:
-                    points.append([i,u,z])
-                newline += digit
+                # if digit == 1:
+                #     points.append([i,u,z])
+                new_line += digit
             new_layer.append(new_line)
 
         image_3D.append(new_layer)
@@ -148,6 +150,7 @@ for rule in rules:
     ####################### run the cellular automata
     image_3D = cellular_automata_3D(rule_dict, first_layer, layer_count, False)
 
+    print(image_3D)
 
     ################## visualise
     # # plt.show()
