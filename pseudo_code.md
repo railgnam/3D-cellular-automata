@@ -24,6 +24,8 @@ The data is stored and the graphics is represented per line in strings of bytes,
 
 ### create a code dictionary
 
+### first line
+
 ### play the rule using dictonary keys
 
 ### prints the string, '1' replaced to '_'
