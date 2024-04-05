@@ -29,6 +29,7 @@ colors[cube2] = 'green'
 
 # and plot everything
 ax = plt.figure().add_subplot(projection='3d')
+print(voxelarray)
 ax.voxels(voxelarray, facecolors=colors, edgecolor='k')
 
 plt.show()

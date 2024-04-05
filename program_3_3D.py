@@ -49,7 +49,7 @@ def get_first_layer(size, index_u = -1, index_v = -1):
     layer[index_v][:index_u] + '1' + layer[index_v][(index_u + 1):]
     return layer
 
-def get_first_line_random(size):
+def get_first_layer_random(size):
     """create first layer of random zeros or ones
     """
     layer = []
@@ -58,15 +58,13 @@ def get_first_line_random(size):
         for j in range(size):
             string += str(r.randint(0,1))
         layer.append(string)
-    
-    index_v = index_v % size
-    index_u = index_u % size
+
     
     return layer
 
 def get_rule_code_3x3(rule):
     rule = rule % 2**9
-    """code is length 2^9 binary format of int(rule)"""
+    """code is length 9 binary format of int(rule)"""
     code = '{0:0512b}'.format(int(rule))
     print('\nrule: ', rule, '>>', code)
     return code
@@ -89,37 +87,42 @@ def generate_rulebook_3x3(code):
         rule_dict[input_case] = code[i]
     return rule_dict
 
-def cellular_automata_3D(rule_dict, first_layer, layer_count = 100, print_in_terminal = False, sleep_sec = None):
+def cellular_automata_3D(code, first_layer, layer_count = 100, print_in_terminal = False, sleep_sec = None):
     """runs the cellular automata
-    optionally prints in terminal '0', '_'
-    returns the image_3D: nested list of numbers"""
+    returns image_3D (nested list of strings), digits (flat list of numbers)"""
     # create image_3D
-    image_3D = [first_layer]
+    image_3D = []
     new_layer = first_layer
     rows = len(first_layer)
     # create layers
-    points = []
+
     for z in range(layer_count):
         old_layer = new_layer
         new_layer = []
+        voxel_layer = []
         # make rows
         for u in range(rows):
             # guideline = old_layer[u]
             # make new line
             # iterate on guideline > outputs new character by the rule
-            new_line = ''
+            new_string = ''
+            new_line = []
             L = len(first_layer[0])
             for i in range(L):
                 case1 = old_layer[u-1][i - 1] + old_layer[u-1][i] + old_layer[u-1][(i + 1) % L]
                 case2 = old_layer[u][i - 1] + old_layer[u][i] + old_layer[u][(i + 1) % L]
                 case3 = old_layer[(u+1)%rows][i - 1] + old_layer[(u+1)%rows][i] + old_layer[(u+1)%rows][(i + 1) % L]
-                digit = rule_dict[case1 + case2 + case3]
-                # if digit == 1:
-                #     points.append([i,u,z])
-                new_line += digit
-            new_layer.append(new_line)
+                case=[case1 + case2 + case3]
+                if case == code:
+                    digit = '1'
+                else: digit = '0'
+                new_string += digit
+                new_line.append(int(digit))
+            voxel_layer.append(new_line)
+            new_layer.append(new_string)
+            
 
-        image_3D.append(new_layer)
+        image_3D.append(voxel_layer)
     return image_3D
 
 rules = [
@@ -129,31 +132,36 @@ rules = [
 rules = [341, 511, 16] # pyramid, black, tower
 rules = [16] # tower
 
-for rule in rules:
-    # attributes
-    size = 100
-    # rule = 154
-    index = 49
-    layer_count = 10
+# for rule in rules:
+
+# attributes
+size = 10
+code = '000010000'
+index = 49
+layer_count = 10
 
 
 
-    ##################### init
-    first_layer = get_first_layer(size, index)
-    # first_line = get_first_layer_random(size)
+##################### init
+first_layer = get_first_layer(size, index)
+first_layer = get_first_layer_random(size)
 
-    # make the rules
-    code = get_rule_code_3x3(rule)
-    rule_dict =  generate_rulebook_3x3(code)
+# make the rules
+# code = get_rule_code_3x3(rule)
+# rule_dict =  generate_rulebook_3x3(code)
 
 
-    ####################### run the cellular automata
-    image_3D = cellular_automata_3D(rule_dict, first_layer, layer_count, False)
+####################### run the cellular automata
+image_3D = cellular_automata_3D(code, first_layer, layer_count, False)
+image_3D = np.asarray(image_3D, dtype=np.bool_)
 
-    print(image_3D)
+# ################## visualise
+# # and plot everything
+ax = plt.figure().add_subplot(projection='3d')
+ax.voxels(image_3D,  edgecolor='k')
 
-    ################## visualise
-    # # plt.show()
+plt.show()
+
 
 
 
