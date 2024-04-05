@@ -5,160 +5,115 @@ __license__ = "MIT"
 """
 OVERVIEW
 cellular automata
-pixel version
+voxel version
 generates and saves several image results of a list of rules
 
-for a cell output in a new layer
-the rule reads the previous level adjacent cells (9 cell)
-512 rule
-
-
-data and graphics stored and represented in binary strings in nested lists per layer.
-number_of_rules = 2^9
-generate rule code and the first layer
-create a code dictionary
-play the rule using dictonary keys
-
-convert strings to int
-numpy array of zeros and ones
-save plt.image
-show
+game of life style cellular automata in 3D
+v1: iterative layer buildup
 """
 
 import numpy as np
 import math as math
-import time
 import random as r
 import matplotlib.pyplot as plt
 
 def get_first_layer(size, index_u = -1, index_v = -1):
     """create first layer of zeros
     replace one cell to a one"""
-    layer = []
-    for i in range(size):
-        string = ''
-        for j in range(size):
-            string += '0'
-        layer.append(string)
-    
-    index_v = index_v % size
-    index_u = index_u % size
-        
-    # replace character
+    layer = np.zeros((size, size))
+    layer[index_v, index_u] = 1
 
-    layer[index_v][:index_u] + '1' + layer[index_v][(index_u + 1):]
     return layer
 
 def get_first_layer_random(size):
     """create first layer of random zeros or ones
     """
-    layer = []
-    for i in range(size):
-        string = ''
-        for j in range(size):
-            string += str(r.randint(0,1))
-        layer.append(string)
-
-    
+    layer = np.random.randint(0, 2, size = [size, size])
     return layer
 
-def get_rule_code_3x3(rule):
-    rule = rule % 2**9
-    """code is length 9 binary format of int(rule)"""
-    code = '{0:0512b}'.format(int(rule))
-    print('\nrule: ', rule, '>>', code)
-    return code
-
-def generate_rulebook_3x3(code):
-    """creates a rule dictonary
-    keys: each of the 512 input cases (9 character, 2^9 cases)
-    values: each of the 512 code charachters"""
-    # prepare the input_cases for the rule
-    input_cases_int = []
-    input_cases_str = []
-    for i in range(512):
-        rule_variation_string = '{0:09b}'.format(i)
-        input_cases_str.append(rule_variation_string)
-        # input_cases_int.append([int(rule_variation_string[i]) for i in range(3)])
-
-    # rule dictonary
-    rule_dict = {}
-    for i, input_case in enumerate(input_cases_str):
-        rule_dict[input_case] = code[i]
-    return rule_dict
-
-def cellular_automata_3D(code, first_layer, layer_count = 100, print_in_terminal = False, sleep_sec = None):
+def cellular_automata_layer_buildup(first_layer, min = 2, max = 6, layer_count = 10):
     """runs the cellular automata
-    returns image_3D (nested list of strings), digits (flat list of numbers)"""
-    # create image_3D
-    image_3D = []
-    new_layer = first_layer
-    rows = len(first_layer)
-    # create layers
+    game of life rules
+    new cell is based on the previous layers adjacent cells
 
-    for z in range(layer_count):
-        old_layer = new_layer
-        new_layer = []
-        voxel_layer = []
-        # make rows
-        for u in range(rows):
-            # guideline = old_layer[u]
-            # make new line
-            # iterate on guideline > outputs new character by the rule
-            new_string = ''
-            new_line = []
-            L = len(first_layer[0])
-            for i in range(L):
-                case1 = old_layer[u-1][i - 1] + old_layer[u-1][i] + old_layer[u-1][(i + 1) % L]
-                case2 = old_layer[u][i - 1] + old_layer[u][i] + old_layer[u][(i + 1) % L]
-                case3 = old_layer[(u+1)%rows][i - 1] + old_layer[(u+1)%rows][i] + old_layer[(u+1)%rows][(i + 1) % L]
-                case=[case1 + case2 + case3]
-                if case == code:
-                    digit = '1'
-                else: digit = '0'
-                new_string += digit
-                new_line.append(int(digit))
-            voxel_layer.append(new_line)
-            new_layer.append(new_string)
-            
+    3D method:
+    layer by layer buildup
 
-        image_3D.append(voxel_layer)
-    return image_3D
+    creating new layer:
+    vstack nine rolled versions of the previous layer
+    sum the stack
+    apply the rule based on the sum.
 
-rules = [
-    61, 62, 118, 120, 131, 135,149, 154, 166, 169,
-    173, 178, 180, 210, 225
-]
-rules = [341, 511, 16] # pyramid, black, tower
-rules = [16] # tower
+    returns image_3D / np.array"""
 
-# for rule in rules:
+    
+    layer = first_layer
+    # s = layer.shape
+    s2 = (1, *layer.shape)
+    print(s2)
+    first_layer.reshape(s2)
+    image_3D = [first_layer]
+
+    for i in range(layer_count - 1):
+        # sum adjacent cells
+        l = np.roll(layer, -1, 0)
+        r = np.roll(layer, 1, 0)
+
+        tl = np.roll(l, 1, 1)
+        t = np.roll(layer, 1, 1)
+        tr = np.roll(r, 1, 1)
+
+        bl = np.roll(l, -1, 1)
+        b = np.roll(layer, -1, 1)
+        br = np.roll(r, -1, 1)
+
+        nine_adjacent_sum = layer + l + r + tl + t + tr + bl + b + br
+
+        # logical mask
+        a = nine_adjacent_sum <= max
+        b = nine_adjacent_sum >= min
+        lives = np.logical_and(a, b)
+
+        # create new layer [digits array]
+        new_layer = np.zeros(layer.shape)
+        new_layer[lives] = 1
+
+        # replace old layer with new
+        layer = new_layer
+
+        # append new_layer to image (why cant stack?)
+        s = new_layer.shape
+        new_layer.reshape(s2)
+        image_3D.append(new_layer)
+    
+    cell = np.asarray(image_3D)
+    return cell
+
+
 
 # attributes
-size = 10
-code = '000010000'
-index = 49
-layer_count = 10
-
-
+size = 25
+min = 3
+max = 3
+index = 2
+layer_count = 100
 
 ##################### init
-first_layer = get_first_layer(size, index)
+# first_layer = get_first_layer(size, index, index)
 first_layer = get_first_layer_random(size)
 
-# make the rules
-# code = get_rule_code_3x3(rule)
-# rule_dict =  generate_rulebook_3x3(code)
-
-
 ####################### run the cellular automata
-image_3D = cellular_automata_3D(code, first_layer, layer_count, False)
+image_3D = cellular_automata_layer_buildup(first_layer, min, max, layer_count)
+# print('image_3D')
+# print(image_3D)
 image_3D = np.asarray(image_3D, dtype=np.bool_)
+
+image_3D = np.transpose(image_3D)
 
 # ################## visualise
 # # and plot everything
 ax = plt.figure().add_subplot(projection='3d')
-ax.voxels(image_3D,  edgecolor='k')
+ax.voxels(image_3D, facecolors = [0.5, 0.8, 0, 0.5])
 
 plt.show()
 
