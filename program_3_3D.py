@@ -27,6 +27,19 @@ def get_first_layer(size, index_u = -1, index_v = -1):
 
     return layer
 
+def get_first_layer_circle(size, center, min_radius, max_radius):
+    """create first layer of zeros
+    replace one cell to a one"""
+    layer = np.zeros((size, size))
+    x,y = center
+    for i in range(size):
+        for j in range(size):
+            d = ((i - x) ** 2 + (j - y) ** 2) ** 0.5
+            if d < max_radius and d > min_radius:
+                layer[i, j] = 1
+            
+    return layer
+
 def get_first_layer_random(size):
     """create first layer of random zeros or ones
     """
@@ -93,12 +106,20 @@ def cellular_automata_layer_buildup(first_layer, min = 2, max = 6, layer_count =
 
 # attributes
 size = 20
-min = 2
+layer_count = 20
+
+min = 4
 max = 4
-random = False
-indexs = [2,3]
-layer_count = 40
+
+random = True
+indexs = [2,3,4]
+
 save = True
+circle = True
+r1 = 2
+r2 = 5
+
+note = ''
 
 
 ##################### init
@@ -109,6 +130,10 @@ else:
     first_layer = get_first_layer(size, indexs, indexs)
     txt = str(indexs)[1:-1].replace(', ', '-')
     print(txt)
+
+if circle:
+    first_layer = get_first_layer_circle(size, [10,10], r1, r2)
+    txt = 'circle-r%s-r%s' %(r1, r2)
 
 ####################### run the cellular automata
 image_3D = cellular_automata_layer_buildup(first_layer, min, max, layer_count)
@@ -132,7 +157,7 @@ ax.set_zticks([])
 
 # save
 if save:
-    plt.savefig('img/CA_2.5D/CA_2.5D_min-%s_max-%s_start-%s.png' %(min, max, txt), bbox_inches='tight', dpi = 200)
+    plt.savefig('img/CA_2.5D/CA_2.5D_min-%s_max-%s_start-%s-%s.png' %(min, max, txt, note), bbox_inches='tight', dpi = 200)
     print('saved')
 
 
