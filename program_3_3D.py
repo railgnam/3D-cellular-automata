@@ -21,7 +21,9 @@ def get_first_layer(size, index_u = -1, index_v = -1):
     """create first layer of zeros
     replace one cell to a one"""
     layer = np.zeros((size, size))
-    layer[index_v, index_u] = 1
+    for i in index_u:
+        for j in index_v:
+            layer[i, j] = 1
 
     return layer
 
@@ -89,31 +91,50 @@ def cellular_automata_layer_buildup(first_layer, min = 2, max = 6, layer_count =
     cell = np.asarray(image_3D)
     return cell
 
-
-
 # attributes
-size = 25
-min = 3
-max = 3
-index = 2
-layer_count = 100
+size = 20
+min = 2
+max = 4
+random = False
+indexs = [2,3]
+layer_count = 40
+save = True
+
 
 ##################### init
-# first_layer = get_first_layer(size, index, index)
-first_layer = get_first_layer_random(size)
+if random:
+    first_layer = get_first_layer_random(size)
+    txt = 'random'
+else:
+    first_layer = get_first_layer(size, indexs, indexs)
+    txt = str(indexs)[1:-1].replace(', ', '-')
+    print(txt)
 
 ####################### run the cellular automata
 image_3D = cellular_automata_layer_buildup(first_layer, min, max, layer_count)
-# print('image_3D')
-# print(image_3D)
 image_3D = np.asarray(image_3D, dtype=np.bool_)
-
 image_3D = np.transpose(image_3D)
 
 # ################## visualise
 # # and plot everything
-ax = plt.figure().add_subplot(projection='3d')
-ax.voxels(image_3D, facecolors = [0.5, 0.8, 0, 0.5])
+fig = plt.figure(figsize = [5, 5], dpi = 200)
+ax = fig.add_subplot(projection='3d')
+ax.set_proj_type('persp', focal_length = 0.4)
+
+# voxels
+ax.voxels(image_3D, facecolors = [0.7] * 3, ) #edgecolors = [0] * 3)
+
+# style
+fig.suptitle("CA 2.5D >>  min-%s_max-%s_start-%s" %(min, max, txt), fontsize = 5)
+ax.set_xticks([])
+ax.set_yticks([])
+ax.set_zticks([])
+
+# save
+if save:
+    plt.savefig('img/CA_2.5D/CA_2.5D_min-%s_max-%s_start-%s.png' %(min, max, txt), bbox_inches='tight', dpi = 200)
+    print('saved')
+
 
 plt.show()
 
