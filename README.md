@@ -16,7 +16,7 @@ Cellular Automatas are simple programs generating complex random patterns.
 - rule: amount of filled adjacent cells in the previous layer define the new layer
 - iterations are merged into a 3D array
 - visualised with voxels
-> 2D + Time = 3D:
+> 2D + Time = 3D
 
 ## 3. game of life in real 3D
 
